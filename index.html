@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Latihan Bahasa Indonesia - Interaktif</title>
+
+  <style>
+    *{box-sizing:border-box}
+    body{
+      font-family: Arial, sans-serif;
+      margin:0; padding:20px;
+      background: linear-gradient(135deg,#4facfe,#00f2fe);
+    }
+
+    .card{
+      max-width:800px; margin:auto;
+      background:#fff;
+      padding:25px;
+      border-radius:15px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h1{text-align:center}
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .timer{
+      color:red;
+      font-weight:bold;
+    }
+
+    button{
+      padding:10px;
+      border:none;
+      border-radius:8px;
+      background:#4facfe;
+      color:white;
+      cursor:pointer;
+      margin-top:10px;
+    }
+
+    input[type=text]{
+      padding:6px;
+      width:100%;
+    }
+
+    .hidden{
+      display:none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <h1>Latihan Bahasa Indonesia</h1>
+
+  <!-- LOGIN -->
+  <div id="login">
+    <label>Masukkan Nama:</label>
+    <input type="text" id="nama">
+    <button onclick="mulai()">Mulai</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="hidden">
+    <div class="top">
+      <div id="namaSiswa"></div>
+      <div>Waktu: <span class="timer" id="timer">60</span></div>
+    </div>
+
+    <form id="soal"></form>
+    <button onclick="cekJawaban()">Kumpulkan</button>
+  </div>
+
+  <!-- HASIL -->
+  <div id="hasilBox" class="hidden">
+    <h2 id="hasil"></h2>
+    <button onclick="ulang()">Ulangi</button>
+  </div>
+
+</div>
+
+<script>
+
+// BANK SOAL (20)
+let bankSoal = [
+  {q:"Tujuan teks eksposisi?",type:"pg",a:["Menghibur","Menjelaskan informasi"],k:"Menjelaskan informasi"},
+  {q:"Kata baku aktifitas?",type:"pg",a:["Aktifitas","Aktivitas"],k:"Aktivitas"},
+  {q:"Awal cerpen disebut?",type:"isian",k:"orientasi"},
+  {q:"Puisi termasuk karya?",type:"pg",a:["Sastra","Ilmiah"],k:"Sastra"},
+  {q:"Langkah-langkah disebut teks?",type:"pg",a:["Prosedur","Narasi"],k:"Prosedur"},
+  {q:"Struktur eksposisi?",type:"pg",a:["Tesis-Argumentasi-Penegasan","Orientasi"],k:"Tesis-Argumentasi-Penegasan"},
+  {q:"Kata tidak baku risiko?",type:"pg",a:["Resiko","Risiko"],k:"Resiko"},
+  {q:"Majas 'sekuat baja'?",type:"isian",k:"perumpamaan"},
+  {q:"Dialog ada di teks?",type:"pg",a:["Drama","Eksposisi"],k:"Drama"},
+  {q:"Ciri teks prosedur?",type:"pg",a:["Langkah-langkah","Cerita"],k:"Langkah-langkah"},
+  {q:"Puisi memiliki?",type:"pg",a:["Rima","Grafik"],k:"Rima"},
+  {q:"Cerita fiksi adalah?",type:"pg",a:["Rekaan","Nyata"],k:"Rekaan"},
+  {q:"Tokoh utama disebut?",type:"pg",a:["Protagonis","Antagonis"],k:"Protagonis"},
+  {q:"Akhir cerita disebut?",type:"isian",k:"resolusi"},
+  {q:"Teks prosedur bertujuan?",type:"pg",a:["Petunjuk","Cerita"],k:"Petunjuk"},
+  {q:"Drama ditampilkan dalam?",type:"pg",a:["Panggung","Buku"],k:"Panggung"},
+  {q:"Kalimat efektif harus?",type:"pg",a:["Jelas","Panjang"],k:"Jelas"},
+  {q:"Sinonim besar?",type:"pg",a:["Akbar","Kecil"],k:"Akbar"},
+  {q:"Antonim panas?",type:"pg",a:["Dingin","Hangat"],k:"Dingin"},
+  {q:"Puisi lama contohnya?",type:"pg",a:["Pantun","Cerpen"],k:"Pantun"}
+];
+
+let soalDipilih = [];
+let waktu = 60;
+let interval;
+
+// RANDOM SOAL
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+// MULAI
+function mulai(){
+  let nama = document.getElementById("nama").value;
+  if(!nama){
+    alert("Isi nama dulu!");
+    return;
+  }
+
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+  document.getElementById("namaSiswa").innerText = "Nama: "+nama;
+
+  soalDipilih = shuffle([...bankSoal]).slice(0,10);
+
+  tampilSoal();
+  startTimer();
+}
+
+// TAMPIL SOAL
+function tampilSoal(){
+  let html="";
+
+  soalDipilih.forEach((s,i)=>{
+    html += `<p>${i+1}. ${s.q}</p>`;
+
+    if(s.type=="pg"){
+      s.a.forEach(opt=>{
+        html += `<input type="radio" name="q${i}" value="${opt}"> ${opt}<br>`;
+      });
+    }else{
+      html += `<input type="text" id="q${i}"><br>`;
+    }
+  });
+
+  document.getElementById("soal").innerHTML = html;
+}
+
+// TIMER
+function startTimer(){
+  clearInterval(interval);
+  waktu = 60;
+
+  interval = setInterval(()=>{
+    waktu--;
+    document.getElementById("timer").innerText = waktu;
+
+    if(waktu <= 0){
+      clearInterval(interval);
+      cekJawaban();
+    }
+  },1000);
+}
+
+// CEK JAWABAN (SUDAH FIX)
+function cekJawaban(){
+
+  // VALIDASI
+  for(let i=0;i<soalDipilih.length;i++){
+    let s = soalDipilih[i];
+
+    if(s.type=="pg"){
+      let pilih = document.querySelector(`input[name=q${i}]:checked`);
+      if(!pilih){
+        alert("Masih ada soal yang belum dijawab!");
+        return;
+      }
+    }else{
+      let isi = document.getElementById(`q${i}`).value.trim();
+      if(isi === ""){
+        alert("Masih ada soal yang belum diisi!");
+        return;
+      }
+    }
+  }
+
+  clearInterval(interval);
+
+  let skor = 0;
+
+  soalDipilih.forEach((s,i)=>{
+    if(s.type=="pg"){
+      let pilih = document.querySelector(`input[name=q${i}]:checked`);
+      if(pilih && pilih.value === s.k) skor++;
+    }else{
+      let isi = document.getElementById(`q${i}`).value.toLowerCase();
+      if(isi.includes(s.k)) skor++;
+    }
+  });
+
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("hasilBox").classList.remove("hidden");
+  document.getElementById("hasil").innerText = "Skor: " + skor + "/10";
+}
+
+// ULANG
+function ulang(){
+  document.getElementById("hasilBox").classList.add("hidden");
+  document.getElementById("login").classList.remove("hidden");
+  document.getElementById("nama").value = "";
+}
+
+</script>
+
+</body>
+</html>
